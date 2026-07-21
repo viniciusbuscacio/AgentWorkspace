@@ -1,0 +1,41 @@
+run:
+  timeout: 3m
+  tests: true
+
+linters:
+  enable:
+    - errcheck
+    - gofmt
+    - govet
+    - ineffassign
+    - misspell
+    - revive
+    - staticcheck
+    - unused
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+  misspell:
+    locale: US
+
+issues:
+  exclude-dirs:
+    - build
+    - frontend/node_modules
+    - frontend/wailsjs
+  exclude-rules:
+    - path: 'frontend/wailsjs/'
+      linters:
+        - errcheck
+        - revive
+        - staticcheck
+    # The ADK tool.Context alias is intentionally retained during the upstream
+    # migration window; replacing it locally would create churn without changing
+    # aw behavior.
+    - path: 'internal/infrastructure/tools/.*\.go'
+      text: 'SA1019: tool.Context is deprecated'
+      linters:
+        - staticcheck
+  max-issues-per-linter: 0
+  max-same-issues: 0

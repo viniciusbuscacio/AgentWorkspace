@@ -1,0 +1,24 @@
+build/bin
+build/release
+build/*.log
+build/cdp-profile
+node_modules
+frontend/dist
+*-res.syso
+.DS_Store
+build/.DS_Store
+
+# spec queue runner state (logs, sessions, lock)
+.pi-loop/
+QUEUE-STOPPED.md
+/buildgate
+
+# stray local build output (regular build/bin is already ignored)
+build/bin4
+cmd/awd/dist/
+
+# locally provisioned voice binaries (whisper-cli/ffmpeg + DLLs); the README
+# stays tracked, the downloaded binaries do not.
+resources/voice/bin/
+resources/voice/models/
+/awd

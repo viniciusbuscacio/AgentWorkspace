@@ -1,0 +1,1125 @@
+/*
+ * AW chat area styles — ported VERBATIM from the vanilla frontend
+ * (branch codex/aw-chat-pip-fixes, frontend/src/style.css lines 701-1448).
+ * Source of truth for the chat visual. Do not 'improve' — keep 1:1 with vanilla.
+ * Tokens (--chat-surface, --chat-user-bubble, --border, --radius-md, ...) come
+ * from theme/globals.css (already identical to the vanilla :root).
+ */
+@layer components {
+.chat-module {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  background: var(--chat-surface);
+  --chat-overlay-bottom: calc(max(var(--composer-textarea-height, 40px), 110px) + 33px);
+  overflow: hidden;
+}
+
+/* PiP process: ChatModule fills the whole window. */
+.pip-window {
+  display: grid;
+  height: 100vh;
+  grid-template-rows: minmax(0, 1fr);
+  background: var(--chat-surface);
+}
+
+.chat-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 16px 0;
+}
+
+.chat-scroll.is-empty,
+.pip-chat-scroll.is-empty {
+  padding: 0;
+}
+
+.chat-timeline {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.chat-timeline.is-empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-chat-state {
+  display: grid;
+  width: 100%;
+  min-height: 100%;
+  align-self: stretch;
+  flex: 1;
+  place-items: center;
+  color: var(--text-muted);
+  opacity: 0.44;
+}
+
+.empty-chat-logo {
+  font-size: 144px;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
+  line-height: 1;
+}
+
+.message-row {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+  text-align: left;
+}
+
+.message-row.user {
+  margin-right: auto;
+}
+
+.message-row.assistant,
+.message-row.system-image {
+  margin-right: auto;
+}
+
+.message-row .bubble {
+  display: inline-block;
+  /* Use the available width (user request 2026-06-12) — the old 860px cap
+   * left a dead column on wide windows. */
+  max-width: 95%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--chat-assistant-bubble);
+  color: var(--text-primary);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  /* Match the app-wide body line-height — a tighter chat reads as a smaller
+     font even at the same size. */
+  line-height: 1.5;
+  padding: 8px 12px;
+  text-align: left;
+  white-space: normal;
+}
+
+.message-row.user .bubble {
+  border-color: var(--chat-user-bubble);
+  background: var(--chat-user-bubble);
+  color: var(--accent-foreground);
+}
+
+.message-row.pending .bubble {
+  min-width: 58px;
+  /* Keep the streamed text at full brightness from the first token (user
+   * request 2026-06-13). It used to render in --text-secondary while pending
+   * and only brighten to --text-primary once streaming finished. */
+  color: var(--text-primary);
+}
+
+.message-time {
+  display: block;
+  height: 10px;
+  align-self: flex-end;
+  margin-top: 1px;
+  color: var(--text-muted);
+  font-size: 9px;
+  line-height: 1;
+  opacity: 0.46;
+  text-align: right;
+  transition: opacity 120ms ease;
+  user-select: none;
+}
+
+[data-theme="light"] .message-time {
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.message-row:hover .message-time {
+  opacity: 0.78;
+}
+
+[data-theme="light"] .message-row:hover .message-time {
+  opacity: 0.95;
+}
+
+.system-message {
+  flex: 0 0 auto;
+  max-width: min(680px, 100%);
+  margin: 4px auto;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.system-message.centered {
+  font-style: italic;
+  text-align: center;
+}
+
+.system-message.command {
+  width: fit-content;
+  min-width: min(320px, 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 78%, transparent);
+  color: var(--text-secondary);
+  font-style: normal;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.system-message.stopped {
+  margin-bottom: 8px;
+}
+
+.system-markdown {
+  font-size: 12px;
+}
+
+.system-markdown h3 {
+  margin-top: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.system-markdown ul {
+  padding-left: 18px;
+}
+
+.system-markdown code {
+  font-size: 0.9em;
+}
+
+.markdown-content {
+  overflow-wrap: anywhere;
+}
+
+.assistant-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subagent-block {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+}
+
+.subagent-block summary {
+  display: grid;
+  min-height: 34px;
+  grid-template-columns: 18px minmax(80px, 1fr) auto minmax(0, 1.4fr);
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+  padding: 7px 9px;
+}
+
+.subagent-block summary::-webkit-details-marker {
+  display: none;
+}
+
+.subagent-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.subagent-task,
+.subagent-result {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subagent-task {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.subagent-status {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1;
+  padding: 4px 6px;
+  text-transform: uppercase;
+}
+
+.subagent-result {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.subagent-body {
+  border-top: 1px solid var(--border);
+  padding: 8px 10px 10px;
+}
+
+.markdown-content p {
+  margin: 4px 0;
+}
+
+.markdown-content p:first-child {
+  margin-top: 0;
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content strong {
+  font-weight: 750;
+}
+
+.markdown-content li {
+  margin: 2px 0;
+}
+
+.markdown-content a {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  margin: 12px 0 4px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* Heading sizes in em so they scale with the Settings → Fonts base size
+   (fixed px headings shrank below body text at larger bases). */
+.markdown-content h1 {
+  font-size: 1.43em;
+}
+
+.markdown-content h2 {
+  font-size: 1.29em;
+}
+
+.markdown-content h3 {
+  font-size: 1.07em;
+}
+
+/* h4–h6 had no size and inherited body text, losing all hierarchy. */
+.markdown-content h4 {
+  font-size: 1em;
+}
+
+.markdown-content h5,
+.markdown-content h6 {
+  font-size: 0.93em;
+  color: var(--text-secondary);
+}
+
+/* Images must not blow out the bubble width. */
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+/* Horizontal rule (---) — a quiet divider, not the browser's default. */
+.markdown-content hr {
+  margin: 12px 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* The one place list styling lives — markers must sit inside the bubble, and
+   two-digit ordered markers ("10." up) need room or they bleed left. */
+.markdown-content ul,
+.markdown-content ol {
+  margin: 4px 0;
+}
+
+.markdown-content ul {
+  list-style: disc;
+  padding-left: 1.5em;
+}
+
+.markdown-content ol {
+  list-style: decimal;
+  padding-left: 2.4em;
+}
+
+.markdown-content li {
+  margin: 2px 0;
+}
+
+.markdown-content blockquote {
+  margin: 8px 0;
+  border-left: 2px solid var(--accent);
+  color: var(--text-secondary);
+  padding-left: 12px;
+}
+
+.markdown-content code {
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 0.86em;
+  padding: 1px 4px;
+}
+
+.markdown-content pre {
+  max-width: 100%;
+  margin: 8px 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  padding: 12px;
+}
+
+.markdown-content pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.markdown-content table {
+  /* display:block + overflow lets a wide table scroll horizontally inside the
+     bubble instead of overflowing it (no wrapper element to add in markdown). */
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 8px 0;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.markdown-content td,
+.markdown-content th {
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+}
+
+.user-content {
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+}
+
+.image-attachments {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chat-image {
+  display: block;
+  max-width: min(100%, 520px);
+  max-height: 340px;
+  border-radius: var(--radius-sm);
+  cursor: zoom-in;
+  object-fit: contain;
+}
+
+.image-bubble {
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.image-bubble-title {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+}
+
+.image-bubble .image-attachments {
+  margin: 0;
+  padding: 8px;
+}
+
+.file-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.file-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 260px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.file-attachment-chip .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.file-attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 2px;
+}
+
+.typing-indicator .dot,
+.typing-dot-single {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  animation: typingPulse 900ms ease-in-out infinite;
+}
+
+.typing-indicator .dot:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.typing-indicator .dot:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.typing-dot-single {
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: baseline;
+}
+
+@keyframes typingPulse {
+  0%,
+  70%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  35% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.scroll-latest {
+  position: absolute;
+  right: 22px;
+  bottom: var(--chat-overlay-bottom);
+  z-index: 25;
+  display: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 50%;
+  background: rgb(0 0 0 / 80%);
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 28%);
+}
+
+.scroll-latest .material-symbols-outlined {
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
+}
+
+.scroll-latest.is-visible {
+  display: grid;
+}
+
+.chat-error {
+  margin: 0 16px 8px;
+  border: 1px solid rgb(248 81 73 / 50%);
+  border-radius: var(--radius-sm);
+  /* Solid tinted surface — translucent red over the wallpaper was unreadable. */
+  background: color-mix(in srgb, rgb(248 81 73) 15%, var(--bg-elevated));
+  color: #ffb3ad;
+  line-height: 1.35;
+  padding: 8px 10px;
+}
+
+.chat-error-link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+.chat-error-link:hover {
+  color: #ffa198;
+  text-decoration: underline;
+}
+
+.chat-composer {
+  position: relative;
+  flex: 0 0 auto;
+  background: var(--chat-surface);
+  padding: 0 16px 12px;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.composer-resize {
+  height: 7px;
+  cursor: ns-resize;
+  /* Span the full width: the parent .chat-composer has 16px side padding, so
+     the divider line stopped short of both corners. Negative margins push it
+     edge to edge. */
+  margin: 0 -16px;
+  border-top: 1px solid var(--border);
+  transition: border-color 120ms ease;
+}
+
+.composer-resize:hover {
+  border-color: var(--accent);
+}
+
+/* Grid (not flex) so the middle input track can shrink to 0 while the tools and
+   action columns always keep their intrinsic width. In a narrow window (the PiP)
+   a flex input-wrap refused to yield and pushed the send/REC actions past the
+   right edge during voice recording; minmax(0, 1fr) makes the input give way. */
+.composer-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.composer-tools,
+.composer-actions {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
+.composer-input-wrap {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+}
+
+/* PiP is a short window and shares the main window's persisted composer height.
+   Cap the textarea to a fraction of the window so a tall dragged composer never
+   overgrows the PiP viewport (max-height overrides the inline height the
+   resizable composer applies). The voice panel is a compact recording bar that
+   no longer inherits that height, so it needs no cap here. */
+.pip-composer .composer-textarea {
+  max-height: 40vh;
+}
+
+.composer-textarea,
+.queue-edit-textarea {
+  width: 100%;
+  min-height: 40px;
+  max-height: 50vh;
+  resize: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  background: var(--chat-composer);
+  color: var(--text-primary);
+  line-height: 1.35;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  padding: 9px 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.composer-textarea:focus,
+.queue-edit-textarea:focus {
+  border-color: var(--border-focus);
+}
+
+/* Voice recording feedback (ported from AW2 VoiceRecordingPanel). The panel
+   replaces the textarea while recording/transcribing. */
+.voice-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  /* ~2 text lines: a comfortable box (not a thin sliver) whose height matches
+     the stacked send + REC action column (34 + 4 + 34), so they line up. */
+  min-height: 72px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-md);
+  background: var(--chat-composer);
+}
+
+.voice-panel.processing {
+  border-color: var(--border);
+}
+
+.voice-panel-draft {
+  margin-bottom: 6px;
+  max-height: 64px;
+  overflow: hidden;
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text-primary);
+  opacity: 0.9;
+}
+
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  min-height: 32px;
+  overflow: hidden;
+}
+
+.voice-wave span {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 999px;
+  background: var(--text-primary);
+}
+
+.voice-wave.quiet span {
+  background: var(--text-secondary);
+  animation: voice-quiet-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes voice-quiet-pulse {
+  50% { opacity: 0.35; }
+}
+
+.voice-panel-meta {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voice-timer {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.voice-stop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.voice-stop:hover {
+  border-color: var(--border-focus);
+}
+
+.voice-processing-label {
+  flex-shrink: 0;
+  margin-left: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Exactly the .icon-button footprint so the toolbar never shifts. */
+.voice-rec-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgb(239 68 68 / 70%);
+  border-radius: var(--radius-md);
+  background: rgb(239 68 68 / 15%);
+  color: #fca5a5;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.voice-rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #f87171;
+  box-shadow: 0 0 8px rgb(248 113 113 / 80%);
+  animation: voice-rec-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes voice-rec-pulse {
+  50% { opacity: 0.4; }
+}
+
+.icon-button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: background-color 120ms ease, opacity 120ms ease, border-color 120ms ease;
+}
+
+.icon-button .material-symbols-outlined {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.icon-button:hover:not(:disabled) {
+  border-color: var(--border-focus);
+  background: var(--bg-hover);
+  opacity: 1;
+}
+
+.icon-button:disabled {
+  cursor: default;
+  opacity: 0.25;
+}
+
+.send-button:not(:disabled) {
+  border-color: rgb(111 150 255 / 44%);
+  background: var(--accent);
+  color: var(--accent-foreground);
+  opacity: 1;
+}
+
+.stop-button:not(:disabled) {
+  color: #ff7b72;
+  opacity: 0.95;
+}
+
+.attachment-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.attachment-chip {
+  display: inline-flex;
+  max-width: 240px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 5px 7px;
+}
+
+.attachment-chip img {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.attachment-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-chip button {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.attachment-chip button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.attachment-chip .material-symbols-outlined,
+.attachment-file-icon .material-symbols-outlined {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+.queue-panel {
+  margin-bottom: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--chat-composer);
+}
+
+.queue-toggle {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 0 10px;
+  text-align: left;
+}
+
+.queue-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.queue-icon,
+.queue-item-icon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  place-items: center;
+}
+
+.queue-icon .material-symbols-outlined,
+.queue-item-icon .material-symbols-outlined {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.queue-list {
+  max-height: 190px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+
+.queue-item {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 7px 9px;
+}
+
+.queue-item:last-child {
+  border-bottom: 0;
+}
+
+.queue-item-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.queue-text {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-edit-textarea {
+  min-height: 32px;
+  padding: 5px 7px;
+}
+
+.queue-image-count {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 6px;
+}
+
+.queue-action {
+  display: inline-flex;
+  height: 28px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 7px;
+}
+
+.queue-action .material-symbols-outlined {
+  width: 15px;
+  height: 15px;
+  font-size: 15px;
+}
+
+.queue-action:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.queue-action.danger:hover {
+  color: #ff7b72;
+}
+
+.slash-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 30;
+  width: min(760px, 100%);
+  max-height: min(620px, 70vh);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 34%);
+}
+
+.slash-menu-header {
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 750;
+  padding: 8px 10px;
+  text-transform: uppercase;
+}
+
+.slash-menu-list {
+  max-height: calc(min(620px, 70vh) - 34px);
+  overflow-y: auto;
+}
+
+.slash-item {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(90px, 130px) minmax(0, 1fr);
+  gap: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.slash-item:hover,
+.slash-item.active {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.slash-item span {
+  color: var(--accent-hover);
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.slash-item small {
+  min-width: 0;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.chat-bottom-spacer {
+  height: 32px;
+  flex: 0 0 auto;
+}
+
+.image-preview-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.image-preview {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background: rgb(0 0 0 / 86%);
+  cursor: zoom-out;
+  pointer-events: auto;
+}
+
+.image-preview img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+}
+
+/* aw-specific (not in vanilla): transient slash-command feedback bar. The
+   vanilla renders command output as system messages; aw keeps a small
+   dismissible notice above the composer. */
+.chat-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 16px 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.chat-notice button {
+  display: inline-flex;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.chat-notice button:hover {
+  color: var(--text-primary);
+}
+}

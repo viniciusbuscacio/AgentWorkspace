@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gmail Web"
+  short_description: "Operate Gmail through an already-open browser tab."
+  default_prompt: "Use Gmail Web to find, read, delete, archive, label, or verify Gmail messages through Edge/Chrome when Gmail is open in the browser."

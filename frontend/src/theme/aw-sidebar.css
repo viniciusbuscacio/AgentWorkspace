@@ -1,0 +1,817 @@
+/*
+ * aw-sidebar.css — VERBATIM port of the vanilla AW2/aw sidebar + layout CSS.
+ *
+ * Source of truth: branch codex/aw-chat-pip-fixes, frontend/src/style.css
+ *   - lines 109-700  (#app grid layout, .sidebar, nav-*, sidebar modes, .content)
+ *   - lines 2859-2960 (context-menu, nav-rename-input)
+ *
+ * Keep this 1:1 with the vanilla. Tokens (--sidebar-*, --bg-*, --border, etc.)
+ * are already defined in globals.css. Wrapped in @layer components so Tailwind
+ * utilities can still override when intentionally needed.
+ *
+ * The React shell must render a container with id="app" + the same
+ * sidebar-pos and sidebar-mode classes and --sb-w/--sb-h/--sb-icon vars.
+ */
+@layer components {
+#app {
+  display: grid;
+  width: calc(100vw / var(--aw-app-zoom, 1));
+  height: calc(100vh / var(--aw-app-zoom, 1));
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-primary);
+  --sb-w: 260px;
+  --sb-h: 56px;
+  --sb-icon: 18px;
+}
+
+#app.vault-gate-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  width: calc(100vw / var(--aw-app-zoom, 1));
+  height: calc(100vh / var(--aw-app-zoom, 1));
+  min-width: calc(100vw / var(--aw-app-zoom, 1));
+  min-height: calc(100vh / var(--aw-app-zoom, 1));
+  overflow: auto;
+}
+
+/* --- Vertical positions (left / right) --- */
+#app.sidebar-pos-left {
+  grid-template-columns: var(--sb-w) minmax(0, 1fr);
+  grid-template-rows: 100%;
+}
+
+#app.sidebar-pos-right {
+  grid-template-columns: minmax(0, 1fr) var(--sb-w);
+  grid-template-rows: 100%;
+}
+
+#app.sidebar-pos-left .sidebar {
+  grid-column: 1;
+  grid-row: 1;
+  border-right: 1px solid var(--border);
+}
+
+#app.sidebar-pos-left .content {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+#app.sidebar-pos-right .sidebar {
+  grid-column: 2;
+  grid-row: 1;
+  border-left: 1px solid var(--border);
+}
+
+#app.sidebar-pos-right .content {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* --- Horizontal positions (top / bottom) --- */
+#app.sidebar-pos-top {
+  grid-template-rows: var(--sb-h) minmax(0, 1fr);
+  grid-template-columns: 100%;
+}
+
+#app.sidebar-pos-bottom {
+  grid-template-rows: minmax(0, 1fr) var(--sb-h);
+  grid-template-columns: 100%;
+}
+
+#app.sidebar-pos-top .sidebar {
+  grid-row: 1;
+  grid-column: 1;
+  border-bottom: 1px solid var(--border);
+}
+
+#app.sidebar-pos-top .content {
+  grid-row: 2;
+  grid-column: 1;
+}
+
+#app.sidebar-pos-bottom .sidebar {
+  grid-row: 2;
+  grid-column: 1;
+  border-top: 1px solid var(--border);
+}
+
+#app.sidebar-pos-bottom .content {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.sidebar {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--sidebar-bg);
+  color: var(--text-secondary);
+  overflow: hidden;
+  padding: 12px 8px 10px;
+}
+
+/* Resize grip on the inner edge. */
+.sidebar-resize {
+  position: absolute;
+  z-index: 20;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+.sidebar-resize:hover {
+  background: var(--accent);
+}
+#app.sidebar-pos-left .sidebar-resize {
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+}
+#app.sidebar-pos-right .sidebar-resize {
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+}
+#app.sidebar-pos-top .sidebar-resize {
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  width: 100%;
+  cursor: row-resize;
+}
+#app.sidebar-pos-bottom .sidebar-resize {
+  left: 0;
+  top: 0;
+  height: 4px;
+  width: 100%;
+  cursor: row-resize;
+}
+
+.nav-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Visual separator under the fixed top block (New Chat / Apps), dividing the
+   primary navigation from the workspace modules below. */
+.sidebar-divider {
+  height: 1px;
+  margin: 6px 8px;
+  background: var(--border);
+  border: 0;
+  flex: none;
+}
+
+.nav-heading {
+  display: flex;
+  height: 34px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  color: var(--text-muted);
+  font-size: calc(var(--font-size) * 0.93);
+  font-weight: 650;
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 38px;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0 10px;
+  text-align: left;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.nav-item:hover {
+  background: var(--sidebar-hover);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background: var(--sidebar-active);
+  color: var(--sidebar-active-text);
+}
+
+.nav-item.primary {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+.nav-icon {
+  display: inline-grid;
+  width: calc(var(--sb-icon, 20px) + 2px);
+  height: calc(var(--sb-icon, 20px) + 2px);
+  flex: 0 0 calc(var(--sb-icon, 20px) + 2px);
+  place-items: center;
+  color: currentColor;
+}
+
+.nav-icon .material-symbols-outlined {
+  width: 100%;
+  height: 100%;
+  font-size: var(--sb-icon, 20px);
+}
+
+/* Brand-SVG icon tokens (AwIcon) size like the material glyphs: the bundled
+   SVGs are 1em/currentColor, so font-size drives them. */
+.nav-icon .aw-brand-icon {
+  width: 100%;
+  height: 100%;
+  font-size: var(--sb-icon, 20px);
+}
+
+.nav-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-nav-item,
+.module-nav-item {
+  padding-right: 6px;
+}
+
+.nav-chat-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  opacity: 0;
+  transition: background-color 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+
+.nav-chat-close .material-symbols-outlined {
+  font-size: 16px;
+  line-height: 1;
+  width: auto;
+  height: auto;
+}
+
+.chat-nav-item:hover .nav-chat-close,
+.chat-nav-item:focus-within .nav-chat-close,
+.module-nav-item:hover .nav-chat-close,
+.module-nav-item:focus-within .nav-chat-close,
+.nav-chat-close:focus-visible {
+  opacity: 1;
+}
+
+.nav-chat-close:hover,
+.nav-chat-close:focus-visible {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.archived-list {
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  padding-left: 18px;
+}
+
+.sidebar-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* Native windowing: skip layout/paint of off-screen chat rows (scales to thousands). */
+.chat-nav-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 38px;
+}
+
+.archived-list .chat-nav-item {
+  contain-intrinsic-size: auto 34px;
+}
+
+.chat-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 2px 0 4px;
+}
+
+.chat-search-icon {
+  position: absolute;
+  left: 6px;
+  display: inline-flex;
+  pointer-events: none;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.chat-search-icon .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.chat-search-input {
+  width: 100%;
+  height: 30px;
+  padding: 0 26px 0 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: calc(var(--font-size) * 0.93);
+  outline: none;
+}
+
+.chat-search-input:focus {
+  border-color: var(--accent, #3b82f6);
+}
+
+.chat-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.chat-search-clear {
+  position: absolute;
+  right: 4px;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.chat-search-clear:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.chat-search-clear .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.chat-list-empty {
+  margin: 4px 6px;
+  font-size: calc(var(--font-size) * 0.857);
+  color: var(--text-muted);
+}
+
+.archived-list.open {
+  display: flex;
+  max-height: calc(30px + 6px + (5 * 34px) + (5 * 3px));
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.archived-list.open .chat-search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  background: var(--sidebar-bg);
+  padding-bottom: 1px;
+}
+
+.archived-list.open::-webkit-scrollbar {
+  width: 8px;
+}
+.archived-list.open::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* Archived fica fixo no rodape, logo acima da mini status bar (que tem o
+   botao que abre/fecha a lista). Fechado o bloco colapsa por completo —
+   borda e respiro so existem com a lista aberta. */
+.archived-block {
+  flex: 0 0 auto;
+}
+
+.archived-block.open {
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.archived-list .nav-item {
+  height: 34px;
+}
+
+.sidebar-spacer {
+  min-height: 8px;
+  flex: 1;
+}
+
+.settings-link {
+  flex: 0 0 auto;
+}
+
+/* ===== Sidebar modes (icon-only / peek / icon-names / horizontal) ===== */
+
+/* Icon-only: center icons, hide labels and chrome. */
+#app.sidebar-mode-icon .nav-item {
+  gap: 0;
+  padding: 0 10px;
+  justify-content: center;
+}
+#app.sidebar-mode-icon .nav-label,
+#app.sidebar-mode-icon .nav-chat-close,
+#app.sidebar-mode-icon .nav-heading span:not(.nav-icon),
+#app.sidebar-mode-icon .chat-search {
+  display: none;
+}
+#app.sidebar-mode-icon .nav-heading {
+  justify-content: center;
+  padding: 0;
+}
+/* No modo icon o .sidebar-scroll nao deve reservar gutter de scrollbar,
+   senao os icones dentro dele (Archived/chats) ficam deslocados pra
+   esquerda em relacao aos de fora (New Chat/Apps/Lock/Settings). */
+#app.sidebar-mode-icon .sidebar-scroll {
+  scrollbar-gutter: auto;
+}
+#app.sidebar-mode-icon .sidebar-scroll::-webkit-scrollbar {
+  width: 0;
+}
+#app.sidebar-mode-icon .archived-list {
+  gap: 4px;
+  padding-left: 0;
+}
+
+/* Icon-names: icon + tiny label stacked, centered. */
+#app.sidebar-icon-names .nav-item {
+  flex-direction: column;
+  gap: 2px;
+  height: auto;
+  padding: 8px 0;
+  justify-content: center;
+}
+#app.sidebar-icon-names .nav-label {
+  display: block;
+  flex: 0 0 auto;
+  max-width: 100%;
+  text-align: center;
+  font-size: clamp(8px, calc((var(--sb-w, 84px) - 12px) / 7), 11px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+#app.sidebar-icon-names .nav-heading,
+#app.sidebar-icon-names .nav-chat-close,
+#app.sidebar-icon-names .chat-search {
+  display: none;
+}
+
+/* Peek: collapse to a thin strip, hide everything but the resize grip. */
+#app.sidebar-mode-peek .sidebar > *:not(.sidebar-resize) {
+  display: none;
+}
+#app.sidebar-mode-peek .sidebar {
+  padding: 0;
+  background: var(--sidebar-bg);
+}
+#app.sidebar-mode-peek .sidebar:hover {
+  background: var(--sidebar-hover);
+}
+
+/* Icon/peek hover hints are the React .sidebar-tip (position: fixed) — the
+   old ::after/::before CSS tooltip lived inside the sidebar's overflow:hidden
+   and got clipped to a floating arrow sliver. */
+
+/* ===== Horizontal (top / bottom): one row of items ===== */
+#app.sidebar-mode-horizontal .sidebar {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+}
+#app.sidebar-mode-horizontal .nav-block {
+  flex-direction: row;
+  gap: 6px;
+}
+#app.sidebar-mode-horizontal .sidebar-scroll {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 6px;
+}
+#app.sidebar-mode-horizontal .nav-item {
+  width: auto;
+  flex: 0 0 auto;
+  height: 40px;
+  padding: 0 12px;
+  max-width: 200px;
+}
+#app.sidebar-mode-horizontal .nav-heading {
+  display: none;
+}
+#app.sidebar-mode-horizontal .nav-chat-close {
+  display: none;
+}
+/* Archived drill-down list does not fit a horizontal row; hide its expansion. */
+#app.sidebar-mode-horizontal .archived-list {
+  display: none;
+}
+#app.sidebar-mode-horizontal .chat-nav-item {
+  min-width: 120px;
+}
+
+.content {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  background-color: var(--bg-primary);
+  /* Wallpaper image set via --aw-wallpaper-image by AppShell; visible behind
+     the glass-veil layer for non-home views. Falls back to bg-primary when
+     no image is set (default wallpaper = CSS gradient). */
+  background-image: var(--aw-wallpaper-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.content-body {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+
+/* ----- context menu + inline rename (style.css 2859-2960) ----- */
+.context-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 10000;
+  min-width: 184px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  animation: context-menu-in 90ms ease-out;
+}
+
+@keyframes context-menu-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 100ms ease, color 100ms ease;
+}
+
+.context-menu-item:hover,
+.context-menu-item:focus-visible {
+  background: var(--sidebar-hover);
+  outline: none;
+}
+
+.context-menu-item.destructive {
+  color: #f87171;
+}
+
+.context-menu-item.destructive:hover,
+.context-menu-item.destructive:focus-visible {
+  background: rgb(248 113 113 / 14%);
+  color: #fca5a5;
+}
+
+.context-menu-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.context-menu-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}
+
+.nav-rename-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 2px 6px;
+  outline: none;
+}
+
+.context-menu-header {
+  padding: 5px 10px 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.context-menu-check {
+  margin-left: auto;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.sidebar-context-menu {
+  min-width: 220px;
+}
+
+.sidebar-context-submenu {
+  min-width: 180px;
+}
+
+.context-menu-item.is-subtrigger {
+  justify-content: space-between;
+}
+
+.context-menu-item.is-subtrigger.is-open {
+  background: var(--sidebar-hover);
+}
+
+.context-menu-arrow {
+  margin-left: auto;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.context-menu-item-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.context-menu-subtitle {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+}
+
+/* ── Sidebar mini status bar: exposure dot + one-click lock ─────────────────
+   The dot exists only while a network server (REST/MCP/Web) is listening;
+   pattern borrowed from go-passwords' titlebar api-dot. */
+.sidebar-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-status-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.sidebar-status-btn:hover {
+  background: var(--sidebar-hover);
+  color: var(--text);
+}
+
+.sidebar-status-btn.open {
+  background: var(--sidebar-hover);
+  color: var(--text-primary);
+}
+
+/* Instant tooltip for the status buttons. Rendered by React as position:fixed
+   so the sidebar's overflow:hidden can never clip it (the CSS ::after attempt
+   got cut at the sidebar edge in icon mode). Coordinates come from
+   getBoundingClientRect ÷ measureFixedScale, like the context menus. */
+.sidebar-tip {
+  position: fixed;
+  z-index: 10002;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 24%);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 5px 8px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.sidebar-tip-top { transform: translate(-50%, -100%); }
+.sidebar-tip-bottom { transform: translateX(-50%); }
+.sidebar-tip-right { transform: translateY(-50%); }
+.sidebar-tip-left { transform: translate(-100%, -50%); }
+
+/* Narrow icon sidebar ("em pé"): stack the buttons in a column with its own
+   order — Archived Chats, Servers, Lock, Hide. */
+#app.sidebar-mode-icon .sidebar-status {
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+}
+#app.sidebar-mode-icon .sidebar-status [data-awid="archived-toggle"] { order: 1; }
+#app.sidebar-mode-icon .sidebar-status [data-awid="server-dot"] { order: 2; }
+#app.sidebar-mode-icon .sidebar-status [data-awid="lock-now"] { order: 3; }
+#app.sidebar-mode-icon .sidebar-status [data-awid="sidebar-hide"] { order: 4; }
+
+.sidebar-status-icon {
+  font-size: 16px;
+}
+
+.server-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--aw-success, #22c55e);
+  box-shadow: 0 0 6px var(--aw-success, #22c55e);
+  animation: server-dot-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes server-dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 3px var(--aw-success, #22c55e);
+  }
+  50% {
+    box-shadow: 0 0 8px var(--aw-success, #22c55e);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .server-dot {
+    animation: none;
+  }
+}

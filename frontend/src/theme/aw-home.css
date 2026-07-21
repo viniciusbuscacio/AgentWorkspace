@@ -1,0 +1,289 @@
+/* aw-home.css — Apps/Home screen ported verbatim from the vanilla style.css
+   (home-screen, home-grid, home-card and toolbar). Source of truth: vanilla.
+   Mirrors the AW2 HomeModuleCard/HomeModuleGrid look. */
+@layer components {
+.home-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 28px 28px 48px;
+}
+
+/* Numa coluna flex com scroll, os filhos NAO podem encolher: senao o
+   WebKit (WKWebView do .app) comprime os cards e o conteudo interno
+   (ex.: provider-list/detail) vaza pra fora da borda. Mantendo a altura
+   intrinseca, o overflow vira scroll no .home-screen (igual Chromium). */
+.home-screen > * {
+  flex-shrink: 0;
+}
+
+.home-header {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home-title {
+  margin: 0;
+  font-size: calc(var(--font-size) * 1.714);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.home-subtitle {
+  margin: 4px 0 0;
+  font-size: calc(var(--font-size) * 1.143);
+  color: var(--text-secondary);
+}
+
+.home-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 140px;
+}
+
+.home-search-icon {
+  position: absolute;
+  left: 10px;
+  display: inline-flex;
+  pointer-events: none;
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.home-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 30px 0 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: var(--font-size);
+  outline: none;
+}
+
+.home-search-input:focus {
+  border-color: var(--border-focus);
+}
+
+.home-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.home-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap, 0.75rem);
+  aspect-ratio: 4 / 3;
+  padding: var(--card-pad, 1.25rem);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.home-card.is-mini,
+.home-card.is-compact {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.home-card.is-mini .home-card-head,
+.home-card.is-compact .home-card-head {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-card.is-mini .home-card-title,
+.home-card.is-mini .home-card-desc,
+.home-card.is-compact .home-card-desc {
+  display: none;
+}
+
+.home-card:hover,
+.home-card:focus-visible {
+  border-color: var(--accent);
+  /* Opaque blue tint: a translucent hover background turned the card
+   * see-through over the wallpaper (user screenshot 2026-06-12). The
+   * accent mixes INTO the solid card surface instead of replacing it. */
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-secondary));
+  outline: none;
+}
+
+.home-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.home-card-icon {
+  flex: 0 0 auto;
+  font-size: var(--card-icon-px, 22px);
+  line-height: 1;
+  color: var(--text-secondary);
+  transition: color 120ms ease;
+}
+
+.home-card:hover .home-card-icon,
+.home-card:focus-visible .home-card-icon {
+  color: var(--accent);
+}
+
+.home-card-added {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.home-card.is-mini .home-card-added {
+  display: none;
+}
+
+.home-card-title {
+  font-size: var(--card-title-rem, 1rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-primary);
+  transition: color 120ms ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-card:hover .home-card-title,
+.home-card:focus-visible .home-card-title {
+  color: var(--accent);
+}
+
+.home-card-desc {
+  font-size: var(--card-desc-rem, 0.82rem);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-order-select {
+  flex: 0 0 auto;
+  height: 38px;
+  padding: 0 28px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: var(--font-size);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.home-order-select:hover {
+  background-color: var(--bg-hover);
+}
+
+.home-order-select:focus {
+  border-color: var(--border-focus);
+}
+
+.home-iconsize {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  height: 38px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  opacity: 0.8;
+  transition: opacity 120ms ease;
+}
+
+.home-iconsize:hover {
+  opacity: 1;
+}
+
+.home-iconsize-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.home-iconsize-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.home-iconsize-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.home-size-range {
+  width: 100px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.home-card-toggle {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.home-card.is-mini .home-card-toggle {
+  display: none;
+}
+
+
+.home-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: var(--font-size);
+}
+}

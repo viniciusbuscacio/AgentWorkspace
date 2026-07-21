@@ -1,0 +1,8 @@
+@layer base {
+  /*
+   * Design tokens mapped as Tailwind custom utilities.
+   * These bridge CSS variables to Tailwind class names.
+   * Usage: bg-background, bg-secondary, text-foreground, border-border, etc.
+   * Configured in tailwind.config.ts via theme.extend.colors.
+   */
+}

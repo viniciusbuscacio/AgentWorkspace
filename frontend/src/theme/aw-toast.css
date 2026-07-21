@@ -1,0 +1,100 @@
+/*
+ * Toast (Sonner) — app-specific overrides. Imported globally in main.tsx.
+ * Every rule carries an extra `[data-sonner-toaster]` ancestor so it outranks
+ * Sonner's own stylesheet regardless of injection order.
+ */
+
+/* 1 + 2. Close button: inside the TOP-RIGHT corner, fixed 22x22, no outward
+   translate (Sonner floats it outside with translate(-35%,-35%), which made the
+   toast appear to grow on hover) and no circular border — themed like the
+   sidebar X. Absolute, so revealing it never reflows the toast. */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-close-button] {
+  left: auto;
+  right: 6px;
+  top: 6px;
+  transform: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+/* Hover: exactly like the sidebar X (--bg-elevated / --text-primary). `!important`
+   beats Sonner's own hover rule (`background: var(--gray2)` — the ugly white)
+   which ties on specificity and would otherwise win by injection order. */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-close-button]:hover {
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: transparent !important;
+}
+
+/* 3. Reveal the X only while the toast is hovered (or the button is focused);
+   Sonner shows it permanently by default. */
+[data-sonner-toaster] [data-sonner-toast] [data-close-button] {
+  opacity: 0;
+}
+[data-sonner-toaster] [data-sonner-toast]:hover [data-close-button],
+[data-sonner-toaster] [data-sonner-toast] [data-close-button]:focus-visible {
+  opacity: 1;
+}
+
+/* 4. Enter from the RIGHT (slide right -> left) at the top-right corner instead
+   of dropping down from the top. Sonner drives entry via the `--y` transform;
+   the pre-mount value for top positions is translateY(-100%). Overriding just
+   the not-yet-mounted state to a horizontal translate makes the toast slide in
+   from the right; the mounted rule (`--y: translateY(0)`) still settles it in
+   place, so this only affects the entrance. */
+[data-sonner-toast][data-y-position='top']:not([data-mounted='true']) {
+  --y: translateX(100%);
+}
+
+/* ...and leave to the RIGHT as well (Sonner slides the dismissed front toast UP
+   via translateY(-100%)). Override the removed front-toast transform so it exits
+   the same way it entered. Opacity fade comes from Sonner's own rule. */
+[data-sonner-toaster] [data-sonner-toast][data-removed='true'][data-front='true'][data-swipe-out='false'] {
+  --y: translateX(100%);
+}
+
+/* 5. Medium Alert-style box (shadcn Alert look: leading icon, title line,
+   muted description line). Narrower than Sonner's 356px default but roomy
+   enough for two lines; width hugs the content. Right padding leaves room
+   for the hover-revealed X in the corner. */
+[data-sonner-toaster] {
+  --width: 360px;
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  width: fit-content;
+  min-width: 240px;
+  max-width: 360px;
+  margin-left: auto; /* keep right edge pinned while width shrinks to content */
+  padding: 12px 32px 12px 14px;
+  font-size: var(--text-sm);
+  align-items: flex-start; /* icon tops-aligns with the title, like Alert */
+}
+[data-sonner-toaster] [data-sonner-toast] [data-icon] {
+  margin: 1px 10px 0 0;
+}
+[data-sonner-toaster] [data-sonner-toast] [data-title] {
+  font-weight: 500;
+  line-height: 1.35;
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-description] {
+  /* Force the app's own text token: Sonner ships its own description color
+     (near-black) that outranked the earlier inherit rule on some themes —
+     black on black. !important beats Sonner's stylesheet regardless of
+     injection order. */
+  color: var(--text-primary) !important;
+  opacity: 0.78;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+/* Error toasts inherit the destructive text for both lines. */
+[data-sonner-toaster] [data-sonner-toast][data-type='error'] [data-description] {
+  color: inherit;
+  opacity: 0.85;
+}
